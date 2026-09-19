@@ -2,6 +2,8 @@
 
 Infraestrutura para criar, versionar e publicar sites com inteligência artificial.
 
+**Produção:** https://ai-site-factory-five.vercel.app
+
 ## Objetivo
 
 A AI Site Factory é a base de uma fábrica de sites e landing pages para clientes. O objetivo é criar sites rapidamente a partir de componentes e templates reutilizáveis, com agentes de IA capazes de criar e modificar os sites no futuro.
@@ -95,7 +97,9 @@ Convenções:
 
 ## Deploy
 
-O repositório está conectado à Vercel. Cada push na branch `main` gera um deploy de produção, e cada outra branch ou pull request gera um preview.
+O repositório está conectado à Vercel (projeto `ai-site-factory`). Cada push na branch `main` gera um deploy de produção em https://ai-site-factory-five.vercel.app, e cada outra branch ou pull request gera um preview.
+
+As URLs de preview são protegidas pelo login da Vercel (Vercel Authentication, padrão da plataforma). Apenas o domínio de produção é público.
 
 ## Próximos passos planejados
 
