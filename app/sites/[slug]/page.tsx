@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageComposer } from "@/composer/page-composer";
-import { exampleSites, getExampleSite } from "@/content/examples";
+import { exampleSites, getExampleSite } from "@/examples";
 import { DemoBanner } from "./demo-banner";
 
 // Known sites are prerendered at build time; unknown slugs hit notFound() below.

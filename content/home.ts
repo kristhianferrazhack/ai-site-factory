@@ -1,16 +1,16 @@
-import { lawFirmBlueprint } from "@/blueprints/law-firm";
-import type { Blueprint } from "@/blueprints/types";
-import { sectionRegistry } from "@/components/sections/registry";
+import type { Blueprint } from "@/blueprints/blueprint";
+import { sectionCatalog } from "@/components/sections/catalog";
 import type { PageDefinition } from "@/composer/types";
-import { exampleSites } from "@/content/examples";
 import type { Brand, FeatureItem } from "@/content/schemas";
+import { exampleSites, getExampleSite } from "@/examples";
 import { siteConfig } from "@/lib/site-config";
+import { SITE_SPEC_VERSION } from "@/site-spec/schema";
 import { templates } from "@/templates";
 
 /*
  * Home page of the factory itself, composed with the same sections and
  * Page Composer used for client sites. The catalog, the template gallery and
- * the blueprint preview are generated from the real registries.
+ * the SiteSpec preview are generated from the real registries and examples.
  */
 
 const brand: Brand = {
@@ -18,21 +18,15 @@ const brand: Brand = {
   logo: { src: "/brand/logo.svg", alt: "", width: 28, height: 28 },
 };
 
-const sectionDefinitions = Object.values(sectionRegistry);
-const variantCount = sectionDefinitions.reduce(
-  (total, section) => total + Object.keys(section.variants).length,
-  0,
-);
+const sectionDefinitions = Object.values(sectionCatalog);
+const variantCount = sectionDefinitions.reduce((total, section) => total + section.variants.length, 0);
 
-const sectionCatalog: FeatureItem[] = sectionDefinitions.map((section) => {
-  const variants = Object.keys(section.variants).length;
-  return {
-    icon: section.icon,
-    title: section.name,
-    description: section.description,
-    badge: variants > 1 ? `${variants} variantes` : undefined,
-  };
-});
+const sectionCatalogItems: FeatureItem[] = sectionDefinitions.map((section) => ({
+  icon: section.icon,
+  title: section.name,
+  description: section.description,
+  badge: section.variants.length > 1 ? `${section.variants.length} variantes` : undefined,
+}));
 
 const templateGallery: FeatureItem[] = templates.map((template) => {
   const example = exampleSites.find((site) => site.blueprint.template === template.id);
@@ -46,10 +40,14 @@ const templateGallery: FeatureItem[] = templates.map((template) => {
   };
 });
 
-/** Compact JSON view of a blueprint: strategy fields plus one line per section. */
-function blueprintPreview(blueprint: Blueprint) {
+const lawFirmSite = getExampleSite("law-firm");
+if (!lawFirmSite) throw new Error('The home page needs the "law-firm" example SiteSpec.');
+const lawFirm = lawFirmSite.blueprint;
+
+/** Compact JSON view of a SiteSpec: strategy fields plus one line per section. */
+function siteSpecPreview(blueprint: Blueprint) {
   const { id, name, type, template, goal, audience, offer, cta, tone, sections } = blueprint;
-  const fields = { id, name, type, template, goal, audience, offer, cta: cta.label, tone };
+  const fields = { version: SITE_SPEC_VERSION, id, name, type, template, goal, audience, offer, tone };
   const inline = (object: Record<string, unknown>) =>
     Object.entries(object)
       .filter(([, value]) => value !== undefined)
@@ -59,9 +57,13 @@ function blueprintPreview(blueprint: Blueprint) {
   return [
     "{",
     ...Object.entries(fields).map(([key, value]) => `  "${key}": ${JSON.stringify(value)},`),
+    `  "cta": { ${inline(cta)} },`,
     '  "sections": [',
     sections
-      .map(({ id, type, variant, surface }) => `    { ${inline({ id, type, variant, surface })} }`)
+      .map(
+        ({ id, type, variant, surface }) =>
+          `    { ${inline({ id, type, variant, surface })}, "content": { … } }`,
+      )
       .join(",\n"),
     "  ]",
     "}",
@@ -78,7 +80,7 @@ export const homePage: PageDefinition = {
           { label: "Como funciona", href: "#como-funciona" },
           { label: "Componentes", href: "#componentes" },
           { label: "Templates", href: "#templates" },
-          { label: "Blueprint", href: "#blueprint" },
+          { label: "SiteSpec", href: "#site-spec" },
         ],
         action: { label: "GitHub", href: siteConfig.repoUrl },
       },
@@ -87,7 +89,7 @@ export const homePage: PageDefinition = {
       type: "hero",
       variant: "centered",
       content: {
-        badge: "Fase 2 · Fábrica reutilizável",
+        badge: "Fase 2.5 · Contrato validado",
         title: siteConfig.name,
         description: siteConfig.description,
         primaryAction: { label: "Explorar templates", href: "#templates" },
@@ -96,13 +98,13 @@ export const homePage: PageDefinition = {
           kind: "terminal",
           title: "ai-site-factory",
           lines: [
-            { kind: "command", text: 'claude "crie o site do escritório a partir do blueprint law-firm"' },
+            { kind: "command", text: 'claude "gere o SiteSpec do escritório de advocacia"' },
             {
               kind: "success",
-              text: `Blueprint validado: ${lawFirmBlueprint.sections.length} seções, template ${lawFirmBlueprint.template}`,
+              text: `SiteSpec validado: ${lawFirm.sections.length} seções, template ${lawFirm.template}`,
             },
             { kind: "command", text: "npm run check" },
-            { kind: "success", text: "Lint, typecheck e build aprovados" },
+            { kind: "success", text: "Lint, typecheck, testes e build aprovados" },
             { kind: "command", text: "git push origin main" },
             { kind: "info", text: "Vercel publica o site automaticamente" },
           ],
@@ -115,27 +117,29 @@ export const homePage: PageDefinition = {
       variant: "steps",
       content: {
         eyebrow: "Como funciona",
-        title: "Quatro camadas, cada uma com um papel",
+        title: "A IA descreve, a fábrica valida e constrói",
         description:
-          "A fábrica separa o que o site precisa comunicar de como ele é construído.",
+          "A especificação diz o que o site deve ser. Como construí-lo é decisão da fábrica.",
         items: [
           {
-            title: "Blueprint",
+            title: "SiteSpec",
             description:
-              "Registra a estratégia: tipo de site, objetivo, público, oferta, tom e plano de seções.",
+              "Um JSON com estratégia, marca, SEO, seções e conteúdo, escrito por uma IA ou por uma pessoa.",
           },
           {
-            title: "Template",
+            title: "Validação",
             description:
-              "Define a identidade visual e as variantes preferidas para cada tipo de negócio.",
+              "Aceita ou rejeita o SiteSpec, com erros por caminho que a própria IA consegue corrigir.",
           },
           {
-            title: "Conteúdo",
-            description: "Textos de cada seção, separados dos componentes e validados por schema.",
+            title: "Blueprint e template",
+            description:
+              "O SiteSpec válido vira blueprint, e o template define o tema e as variantes.",
           },
           {
             title: "Page Composer",
-            description: "Junta tudo e monta a página com os componentes da biblioteca.",
+            description:
+              "Monta a página com as seções do catálogo. Nada fora do catálogo é renderizado.",
           },
         ],
       },
@@ -148,7 +152,7 @@ export const homePage: PageDefinition = {
         eyebrow: "Componentes",
         title: "Uma biblioteca de seções prontas para combinar",
         description: `${sectionDefinitions.length} tipos de seção e ${variantCount} variantes. Cada seção recebe apenas conteúdo: layout, acessibilidade e responsividade já vêm prontos, e o Design System garante a consistência visual.`,
-        items: sectionCatalog,
+        items: sectionCatalogItems,
       },
     },
     {
@@ -158,28 +162,28 @@ export const homePage: PageDefinition = {
         eyebrow: "Templates",
         title: "Pontos de partida por tipo de negócio",
         description:
-          "Cada template define identidade visual, variantes preferidas, estrutura recomendada e regras de conteúdo. Os prontos têm um site de exemplo gerado a partir de um blueprint.",
+          "Cada template define identidade visual, variantes preferidas, estrutura recomendada e regras de conteúdo. Os prontos têm um site de exemplo gerado a partir de um SiteSpec.",
         items: templateGallery,
       },
     },
     {
-      id: "blueprint",
+      id: "site-spec",
       type: "code",
       surface: "dark",
       content: {
-        eyebrow: "Blueprint",
-        title: "A especificação do site, antes da construção",
+        eyebrow: "SiteSpec",
+        title: "O contrato entre a IA e a fábrica",
         description:
-          "O blueprint descreve tipo, objetivo, público, oferta, tom, identidade visual e a ordem das seções. É o formato que os agentes vão gerar a partir de um briefing.",
+          "A IA não escreve código: ela entrega um SiteSpec, uma especificação estruturada do site. A fábrica valida cada campo antes de construir qualquer página.",
         points: [
-          "Tipado em TypeScript: um erro no blueprint aparece no typecheck.",
-          "O conteúdo de cada seção é validado pelo schema do seu tipo.",
-          "Trocar de variante ou de template não exige reescrever o conteúdo.",
+          "Template, seção ou variante inexistente é rejeitado.",
+          "Campos, tamanhos, links, cores e SEO são validados, com erros por caminho.",
+          "Só um SiteSpec válido vira blueprint e página.",
         ],
-        action: { label: "Ver o site gerado", href: `/sites/${lawFirmBlueprint.id}` },
+        action: { label: "Ver o site gerado", href: `/sites/${lawFirm.id}` },
         code: {
-          filename: `blueprints/${lawFirmBlueprint.id}.ts (resumo)`,
-          content: blueprintPreview(lawFirmBlueprint),
+          filename: `examples/site-specs/${lawFirm.id}.json (resumo)`,
+          content: siteSpecPreview(lawFirm),
         },
       },
     },
@@ -189,17 +193,17 @@ export const homePage: PageDefinition = {
       variant: "flow",
       content: {
         eyebrow: "Fluxo de produção",
-        title: "Do briefing ao site no ar, sempre pelo mesmo caminho",
+        title: "Da IA ao site no ar, sempre pelo mesmo caminho",
         description: "Cada etapa tem um lugar definido no código e uma verificação automática.",
         items: [
-          { title: "Briefing", description: "Objetivo, público e oferta" },
-          { title: "Blueprint", description: "Especificação tipada" },
-          { title: "Template", description: "Identidade e estrutura" },
-          { title: "Componentes", description: "Seções reutilizáveis" },
-          { title: "Design System", description: "Tokens consistentes" },
-          { title: "Conteúdo", description: "Textos por seção" },
-          { title: "Página", description: "Montada pelo composer" },
-          { title: "QA", description: "Lint, tipos e build" },
+          { title: "IA", description: "Pensa o site" },
+          { title: "SiteSpec", description: "Especificação estruturada" },
+          { title: "Validação", description: "Aceita ou rejeita" },
+          { title: "Blueprint", description: "Estrutura executável" },
+          { title: "Template", description: "Tema e variantes" },
+          { title: "Page Composer", description: "Monta a página" },
+          { title: "Site", description: "Páginas estáticas" },
+          { title: "QA", description: "Lint, tipos, testes e build" },
           { title: "GitHub", description: "Fonte da verdade" },
           { title: "Vercel", description: "Deploy e previews" },
         ],
@@ -209,9 +213,9 @@ export const homePage: PageDefinition = {
       type: "cta",
       variant: "simple",
       content: {
-        title: "A fábrica está estruturada",
+        title: "Pronta para receber especificações geradas por IA",
         description:
-          "Design System, biblioteca de seções, templates, blueprints e Page Composer estão prontos. A próxima fase conecta agentes a essa base.",
+          "Design System, seções, templates, SiteSpec validado e Page Composer estão prontos. A próxima fase conecta agentes a esse contrato.",
         primaryAction: { label: "Ver código no GitHub", href: siteConfig.repoUrl },
         secondaryAction: { label: "Ver um site de exemplo", href: "/sites/landing-page" },
       },
@@ -228,7 +232,7 @@ export const homePage: PageDefinition = {
               { label: "Como funciona", href: "#como-funciona" },
               { label: "Componentes", href: "#componentes" },
               { label: "Templates", href: "#templates" },
-              { label: "Blueprint", href: "#blueprint" },
+              { label: "SiteSpec", href: "#site-spec" },
             ],
           },
           {
@@ -243,7 +247,7 @@ export const homePage: PageDefinition = {
             links: [{ label: "Código no GitHub", href: siteConfig.repoUrl }],
           },
         ],
-        legal: "AI Site Factory · Fase 2: arquitetura reutilizável da fábrica.",
+        legal: "AI Site Factory · Fase 2.5: contrato de SiteSpec validado.",
       },
     },
   ],

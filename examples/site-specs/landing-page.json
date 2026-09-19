@@ -1,0 +1,280 @@
+{
+  "version": 1,
+  "id": "landing-page",
+  "name": "Rito",
+  "type": "landing-page",
+  "template": "landing-page",
+  "goal": "lead-generation",
+  "audience": "Advogados e escritórios de pequeno e médio porte",
+  "offer": "Software de gestão de prazos e tarefas jurídicas com alertas automáticos",
+  "cta": { "label": "Solicitar demonstração", "href": "#demonstracao" },
+  "tone": ["direto", "confiável", "moderno"],
+  "brand": {
+    "colors": {
+      "accent": { "light": "#0f766e", "dark": "#2dd4bf" },
+      "ring": { "light": "#0f766e", "dark": "#2dd4bf" }
+    }
+  },
+  "seo": {
+    "title": "Rito | Gestão de prazos para escritórios de advocacia",
+    "description": "Centralize prazos, audiências e tarefas do escritório e receba alertas antes de cada vencimento."
+  },
+  "sections": [
+    {
+      "id": "navbar",
+      "type": "navbar",
+      "content": {
+        "brand": { "name": "Rito" },
+        "links": [
+          { "label": "Benefícios", "href": "#beneficios" },
+          { "label": "Recursos", "href": "#recursos" },
+          { "label": "Planos", "href": "#planos" },
+          { "label": "Perguntas", "href": "#perguntas" }
+        ],
+        "action": { "label": "Solicitar demonstração", "href": "#demonstracao" }
+      }
+    },
+    {
+      "id": "inicio",
+      "type": "hero",
+      "purpose": "Mostrar a dor (prazos perdidos) e a solução em uma frase.",
+      "content": {
+        "badge": "Gestão de prazos para advocacia",
+        "title": "Nenhum prazo esquecido. Nenhuma tarefa perdida.",
+        "description": "O Rito centraliza prazos, audiências e tarefas do escritório e avisa a equipe antes de cada vencimento.",
+        "primaryAction": { "label": "Solicitar demonstração", "href": "#demonstracao" },
+        "secondaryAction": { "label": "Ver recursos", "href": "#recursos" },
+        "media": {
+          "kind": "card",
+          "title": "Agenda de hoje",
+          "items": [
+            "09h00 · Audiência de conciliação, 2ª Vara Cível",
+            "14h00 · Prazo de contestação vence amanhã",
+            "16h30 · Reunião com cliente para revisão de contrato"
+          ],
+          "footnote": "3 alertas enviados para a equipe hoje."
+        }
+      }
+    },
+    {
+      "id": "logos",
+      "type": "logos",
+      "purpose": "Prova social com escritórios que usam o produto.",
+      "content": {
+        "title": "Escritórios que já organizam a rotina com o Rito",
+        "items": ["Vértice", "Aurora", "Nexo", "Prisma", "Orbe", "Lumen"]
+      }
+    },
+    {
+      "id": "beneficios",
+      "type": "benefits",
+      "purpose": "Traduzir os recursos em ganho de tempo e segurança.",
+      "content": {
+        "eyebrow": "Por que o Rito",
+        "title": "Menos planilhas, mais tempo para advogar",
+        "description": "Automatize o controle de prazos e dê à equipe uma visão única do que precisa ser feito.",
+        "items": [
+          {
+            "title": "Prazos calculados em dias úteis",
+            "description": "Informe a data da intimação e o Rito calcula o vencimento, considerando feriados e suspensões."
+          },
+          {
+            "title": "Alertas antes do vencimento",
+            "description": "A equipe recebe avisos por e-mail e no celular com a antecedência que você definir."
+          },
+          {
+            "title": "Responsáveis definidos",
+            "description": "Cada prazo tem um responsável, e ninguém precisa perguntar quem está cuidando do quê."
+          },
+          {
+            "title": "Histórico completo",
+            "description": "Toda alteração fica registrada, com data, autor e comentário."
+          }
+        ],
+        "action": { "label": "Solicitar demonstração", "href": "#demonstracao" }
+      }
+    },
+    {
+      "id": "recursos",
+      "type": "features",
+      "surface": "muted",
+      "purpose": "Detalhar os principais recursos.",
+      "content": {
+        "eyebrow": "Recursos",
+        "title": "Tudo o que o escritório precisa para cumprir prazos",
+        "items": [
+          {
+            "icon": "clock",
+            "title": "Controle de prazos",
+            "description": "Prazos processuais e administrativos em um só lugar, com filtros por cliente e responsável."
+          },
+          {
+            "icon": "users",
+            "title": "Tarefas da equipe",
+            "description": "Distribua tarefas, acompanhe o andamento e veja a carga de trabalho de cada pessoa."
+          },
+          {
+            "icon": "file-text",
+            "title": "Modelos de documentos",
+            "description": "Guarde modelos de peças e contratos e reutilize com os dados do cliente."
+          },
+          {
+            "icon": "chart",
+            "title": "Relatórios",
+            "description": "Acompanhe prazos cumpridos, tarefas em atraso e produtividade por período."
+          },
+          {
+            "icon": "shield",
+            "title": "Segurança dos dados",
+            "description": "Criptografia, backups diários e controle de acesso por perfil."
+          },
+          {
+            "icon": "smartphone",
+            "title": "Acesso pelo celular",
+            "description": "Consulte a agenda e conclua tarefas de qualquer lugar."
+          }
+        ]
+      }
+    },
+    {
+      "id": "depoimentos",
+      "type": "testimonials",
+      "purpose": "Experiência de advogados que usam o Rito.",
+      "content": {
+        "eyebrow": "Depoimentos",
+        "title": "Quem usa não volta para a planilha",
+        "items": [
+          {
+            "quote": "Antes do Rito, cada advogado tinha a própria planilha. Hoje a equipe inteira enxerga os mesmos prazos.",
+            "author": "Mariana C.",
+            "role": "Sócia de escritório trabalhista"
+          },
+          {
+            "quote": "Os alertas com antecedência mudaram a nossa rotina. Deixamos de trabalhar no limite do prazo.",
+            "author": "Ricardo T.",
+            "role": "Advogado cível"
+          },
+          {
+            "quote": "A implantação levou uma tarde. Importamos os processos e no dia seguinte já estávamos usando.",
+            "author": "Fernanda L.",
+            "role": "Gestora jurídica"
+          }
+        ]
+      }
+    },
+    {
+      "id": "planos",
+      "type": "pricing",
+      "surface": "muted",
+      "purpose": "Planos por tamanho de equipe.",
+      "content": {
+        "eyebrow": "Planos",
+        "title": "Um plano para cada tamanho de escritório",
+        "description": "Todos os planos incluem alertas, relatórios e suporte por e-mail.",
+        "plans": [
+          {
+            "name": "Essencial",
+            "price": "R$ 89",
+            "period": "/mês",
+            "description": "Para advogados autônomos e duplas.",
+            "features": ["Até 2 usuários", "Prazos e tarefas ilimitados", "Alertas por e-mail"],
+            "action": { "label": "Começar agora", "href": "#demonstracao" }
+          },
+          {
+            "name": "Escritório",
+            "price": "R$ 249",
+            "period": "/mês",
+            "description": "Para equipes que precisam de uma visão compartilhada.",
+            "features": [
+              "Até 10 usuários",
+              "Alertas por e-mail e celular",
+              "Relatórios de produtividade",
+              "Modelos de documentos"
+            ],
+            "action": { "label": "Solicitar demonstração", "href": "#demonstracao" },
+            "highlighted": true,
+            "badge": "Mais escolhido"
+          },
+          {
+            "name": "Corporativo",
+            "price": "Sob consulta",
+            "description": "Para departamentos jurídicos e grandes bancas.",
+            "features": ["Usuários ilimitados", "Integrações sob medida", "Gerente de conta dedicado"],
+            "action": { "label": "Falar com vendas", "href": "#demonstracao" }
+          }
+        ],
+        "note": "Assinatura mensal, sem fidelidade."
+      }
+    },
+    {
+      "id": "perguntas",
+      "type": "faq",
+      "purpose": "Objeções sobre segurança, migração e contrato.",
+      "content": {
+        "eyebrow": "Perguntas frequentes",
+        "title": "Dúvidas comuns",
+        "items": [
+          {
+            "question": "Preciso instalar alguma coisa?",
+            "answer": "Não. O Rito funciona no navegador e no celular, sem instalação."
+          },
+          {
+            "question": "Consigo importar os processos que já tenho?",
+            "answer": "Sim. Você pode importar uma planilha com os processos e prazos em andamento, e nossa equipe ajuda na primeira importação."
+          },
+          {
+            "question": "Os dados do escritório ficam seguros?",
+            "answer": "Os dados são criptografados, com backups diários e acesso controlado por perfil de usuário."
+          },
+          {
+            "question": "Existe fidelidade?",
+            "answer": "Não. A assinatura é mensal e pode ser cancelada a qualquer momento."
+          }
+        ]
+      }
+    },
+    {
+      "id": "demonstracao",
+      "type": "cta",
+      "purpose": "Captar o e-mail para agendar a demonstração.",
+      "content": {
+        "title": "Veja o Rito funcionando no seu escritório",
+        "description": "Deixe seu e-mail profissional e agendamos uma demonstração de 20 minutos.",
+        "primaryAction": { "label": "Solicitar demonstração", "href": "#demonstracao" },
+        "form": {
+          "action": "mailto:contato@example.com",
+          "label": "E-mail profissional",
+          "placeholder": "voce@escritorio.com.br",
+          "submitLabel": "Solicitar demonstração",
+          "note": "Sem compromisso. Respondemos em até um dia útil."
+        }
+      }
+    },
+    {
+      "id": "rodape",
+      "type": "footer",
+      "content": {
+        "brand": { "name": "Rito" },
+        "description": "Gestão de prazos e tarefas para escritórios de advocacia.",
+        "columns": [
+          {
+            "title": "Produto",
+            "links": [
+              { "label": "Benefícios", "href": "#beneficios" },
+              { "label": "Recursos", "href": "#recursos" },
+              { "label": "Planos", "href": "#planos" }
+            ]
+          },
+          {
+            "title": "Suporte",
+            "links": [
+              { "label": "Perguntas frequentes", "href": "#perguntas" },
+              { "label": "Demonstração", "href": "#demonstracao" }
+            ]
+          }
+        ],
+        "legal": "Rito é um produto fictício, criado para demonstrar a AI Site Factory."
+      }
+    }
+  ]
+}

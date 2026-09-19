@@ -1,10 +1,6 @@
 import { cn } from "@/lib/cn";
 import { CodeWindow } from "@/components/ui/code-window";
-
-export type TerminalLine = {
-  kind: "command" | "success" | "info";
-  text: string;
-};
+import type { TerminalLine } from "@/content/schemas";
 
 const lineStyles: Record<TerminalLine["kind"], { prefix: string; className: string }> = {
   command: { prefix: "$", className: "text-zinc-100" },

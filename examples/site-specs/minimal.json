@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "id": "exemplo-minimo",
+  "name": "Exemplo Mínimo",
+  "type": "landing-page",
+  "template": "landing-page",
+  "goal": "lead-generation",
+  "audience": "Pequenas empresas que querem um site simples",
+  "offer": "Um site de uma página, pronto em poucos dias",
+  "cta": { "label": "Fale conosco", "href": "#inicio" },
+  "tone": ["direto"],
+  "seo": {
+    "title": "Exemplo Mínimo | Site de uma página",
+    "description": "O menor SiteSpec válido: os campos obrigatórios e uma única seção hero."
+  },
+  "sections": [
+    {
+      "id": "inicio",
+      "type": "hero",
+      "content": {
+        "title": "Seu site pronto em poucos dias",
+        "description": "Uma página clara, rápida e responsiva para apresentar o seu negócio."
+      }
+    }
+  ]
+}

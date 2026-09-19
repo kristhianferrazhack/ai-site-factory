@@ -10,62 +10,125 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # AI Site Factory: regras para agentes
 
-Fábrica de sites: blueprint + template + conteúdo → Page Composer → página. Leia o `README.md` para a visão completa. Estas regras valem para qualquer IA que altere este repositório.
+Fábrica de sites: **SiteSpec → validação → blueprint → template → Page Composer → site**. Leia o `README.md` para a visão completa. Estas regras valem para qualquer IA que altere este repositório ou produza SiteSpecs.
+
+## Princípio: a especificação diz O QUE, a fábrica decide COMO
+
+Um site novo é descrito por um **SiteSpec**: um JSON com estratégia, template, marca, SEO, CTA, seções e conteúdo. A IA pode sugerir textos, estrutura, template, seções, variantes, tema e SEO, **sempre dentro do que a fábrica já oferece**.
+
+Um SiteSpec **não pode** introduzir:
+- componentes React, seções ou variantes novas;
+- scripts, HTML, CSS livre ou qualquer código executável;
+- dependências npm, configuração de infraestrutura ou arquivos fora do escopo.
+
+A validação garante isso: campos desconhecidos são rejeitados, textos não aceitam HTML, links só aceitam `#id`, `/caminho`, `https://`, `mailto:` e `tel:`, cores só em hexadecimal e medidas só em px/rem/em.
+
+Se um site precisa de algo que a fábrica não tem, isso é **uma mudança na fábrica**, feita em código, revisada e testada. Nunca é um campo a mais no SiteSpec.
+
+## Fronteiras da fábrica
+
+Cada etapa tem um único responsável. Nenhuma etapa assume o trabalho de outra.
+
+| Etapa | Módulo | Faz | Não faz |
+| --- | --- | --- | --- |
+| Input | JSON de uma IA ou pessoa | Descreve o site | Não é confiável até ser validado |
+| SiteSpec | `site-spec/schema.ts` | Define o contrato (schema + tipo) | Não executa nada |
+| Validação | `site-spec/validate.ts` | Aceita ou rejeita, com erros por caminho | Não constrói nem renderiza |
+| Blueprint | `blueprints/from-site-spec.ts` | Separa estrutura (blueprint) e conteúdo | Não valida nem resolve template |
+| Resolução de template | `composer/resolve-page.ts` | Junta tema do template + marca e resolve variantes | Não valida conteúdo nem renderiza |
+| Catálogo e registry de seções | `components/sections/catalog.ts`, `registry.ts` | Diz quais seções e variantes existem e qual componente renderiza cada uma | Não valida conteúdo |
+| Page Composer | `composer/page-composer.tsx` | Renderiza a página com os landmarks corretos | Não valida SiteSpec; nunca faz fallback silencioso |
+| Site renderizado | `app/sites/[slug]`, `app/page.tsx` | Rotas e metadata | Não transforma dados |
+
+O ponto de entrada é `buildSite(input)` (`site-spec/build-site.ts`), que roda validação → blueprint → resolução de template. **Nunca pule a validação** para dados que não foram escritos no código da fábrica.
+
+Seção, variante ou template inexistente gera `FactoryError` (`lib/factory-error.ts`), com códigos `UNKNOWN_SECTION`, `UNKNOWN_VARIANT`, `UNKNOWN_TEMPLATE` e `MISSING_CONTENT`. **Falhar é melhor do que gerar um site incorreto**: não adicione fallbacks silenciosos.
+
+## Como produzir ou corrigir um SiteSpec
+
+1. Parta de um exemplo em `examples/site-specs/` e da estrutura recomendada do template (`templates/<id>/index.ts`, campo `sections`). Siga as `guidelines` do template.
+2. Use só tipos de seção e variantes do catálogo (`components/sections/catalog.ts`), ícones de `components/ui/icon-names.ts` e campos dos schemas de `content/schemas/sections.ts`.
+3. Rode `validateSiteSpec(json)`. Se for rejeitado, `formatValidationErrors(result)` lista cada problema como `caminho: mensagem`. Corrija exatamente os caminhos apontados e valide de novo.
+4. Regras de fábrica, além dos schemas:
+   - ids de seção únicos (também são as âncoras);
+   - exatamente um `hero` (o único h1);
+   - `navbar` no início e `footer` no fim;
+   - todo link `#id` aponta para uma seção existente;
+   - CTA com a variante `form` exige `content.form`.
 
 ## Onde fica cada coisa
 
 | Preciso de... | Arquivo |
 | --- | --- |
-| Tokens visuais (cores, raio, sombra, espaçamento, containers, breakpoints) | `design-system/tokens.css` |
-| Tema de um site ou template | `design-system/theme.ts` (tipo `Theme`) |
-| Blocos básicos | `components/ui/` |
-| Seções e suas variantes | `components/sections/<tipo>/` + `components/sections/registry.ts` |
+| Contrato SiteSpec e validação | `site-spec/` |
+| Mini-biblioteca de schemas (sem dependências) | `lib/schema.ts` |
+| Blueprint (schema, tipo, conversão a partir do SiteSpec) | `blueprints/` |
 | Formato do conteúdo de cada seção | `content/schemas/sections.ts` |
+| Seções e variantes existentes | `components/sections/catalog.ts` |
+| Componente de cada variante | `components/sections/registry.ts` + `components/sections/<tipo>/` |
+| Blocos básicos | `components/ui/` |
+| Tokens visuais | `design-system/tokens.css` |
+| Tema (schema e tipo) | `design-system/theme.ts` |
 | Templates | `templates/<id>/index.ts` + `templates/index.ts` |
-| Blueprints | `blueprints/<id>.ts` |
-| Conteúdo dos blueprints | `content/examples/<id>.ts` + `content/examples/index.ts` |
-| Montagem da página | `composer/compose-site.ts`, `composer/page-composer.tsx` |
+| SiteSpecs de exemplo | `examples/site-specs/*.json` + `examples/index.ts` |
+| Testes | `tests/unit/`, `tests/rendered/` |
 
-## Regras
+## Regras de código
 
-1. **Reutilize antes de criar.** Procure em `components/ui` e no `registry.ts` antes de escrever um componente. Um site novo deve ser, na maior parte, blueprint + conteúdo.
-2. **Não duplique componentes.** Um novo visual para uma seção existente é uma **variante** do mesmo tipo, com o mesmo schema de conteúdo, registrada em `variants`. Um fundo escuro não é uma variante: use `surface: "dark"`.
-3. **Use o Design System.** Nos componentes, só utilitários semânticos: `bg-background`, `bg-surface`, `bg-muted`, `text-foreground`, `text-muted-foreground`, `border-border`, `bg-primary`, `text-accent`, `rounded-card`, `shadow-card`, `py-section`, `max-w-content`... Não use a paleta do Tailwind (`zinc-500`, `indigo-600`) nem cores arbitrárias. A única exceção são `CodeWindow` e `Terminal`, que são sempre escuros.
-4. **Identidade visual vai no tema.** Cores, raios, fonte de títulos e esquema de um cliente ficam no `theme` do template ou no `brand` do blueprint. Nunca altere um componente para atender um único site.
-5. **Não sobrescreva classes da base via `className`.** Sem `tailwind-merge`, a ordem do CSS gerado decide qual classe vence (`hidden` + `inline-flex`, `size-4` + `size-5`...). Crie uma prop ou variante (exemplos: `Card variant`, `Icon size`, `Section spacing`) ou use um wrapper. `className` serve para layout externo: margem, largura, posição no grid.
-6. **Nada de texto fixo nas seções.** Todo texto vem de `content`. Um campo novo exige atualizar o schema em `content/schemas/sections.ts`.
-7. **Acessibilidade:**
-   - um único `h1` por página, no hero; títulos de seção em `h2` (via `SectionHeading`) e itens em `h3`;
-   - toda imagem com `alt`, vazio se for decorativa;
-   - `Icon` é decorativo: o significado fica no texto ao lado;
-   - campos sempre com label (`Input` e `Textarea` exigem `id` e `label`);
-   - foco visível com `focus-visible:outline-ring`;
-   - contraste AA, inclusive nas cores de temas novos;
-   - HTML semântico (`nav`, `main`, `footer`, `dl`, `figure`, `details`).
-8. **Responsividade:** mobile first. Confira em 390, 768 e 1440 px, sem rolagem horizontal. Grids começam em uma coluna.
-9. **Server Components por padrão.** Use `"use client"` só com interatividade real (hoje, apenas o `MobileMenu`). Prefira HTML nativo, como `<details>` no FAQ.
-10. **Não instale dependências sem necessidade real**, incluindo bibliotecas de ícones, UI ou CSS. Ícone novo entra em `components/ui/icon.tsx`.
-11. **Conteúdo de exemplo é fictício** e marcado como demonstração. Nunca imite empresas ou pessoas reais. Sites de advocacia seguem as `guidelines` do template `law-firm` (Provimento 205/2021 da OAB).
-12. **Fora do escopo atual:** banco de dados, autenticação, CMS, dashboard, agentes autônomos, memória, CRM e integrações externas. Não crie sem pedido explícito.
+1. **Reutilize antes de criar.** Procure em `components/ui` e no catálogo antes de escrever um componente. Um site novo deve ser só um SiteSpec.
+2. **Não duplique componentes.** Um novo visual para uma seção existente é uma **variante** do mesmo tipo, com o mesmo schema de conteúdo. Um fundo escuro não é uma variante: use `surface: "dark"`.
+3. **Schemas são a fonte dos tipos.** Os tipos de conteúdo, tema, blueprint e SiteSpec vêm de `Infer<typeof schema>`. Para mudar um formato, mude o schema; não declare um tipo paralelo.
+4. **Validação fica na camada de validação.** Componentes e composer não validam conteúdo; a validação não renderiza nada.
+5. **Módulos de dados e validação não importam React.** `lib/`, `content/schemas/`, `design-system/theme.ts`, `components/sections/catalog.ts`, `blueprints/`, `templates/`, `site-spec/` e `examples/` rodam no Node, nos testes. O resolver dos testes não carrega `.tsx`.
+6. **Use o Design System.** Nos componentes, só utilitários semânticos (`bg-surface`, `text-muted-foreground`, `border-border`, `bg-primary`, `text-accent`, `rounded-card`, `py-section`...). Nada de paleta do Tailwind ou cores arbitrárias, exceto em `CodeWindow` e `Terminal`.
+7. **Identidade visual vai no tema** (`theme` do template ou `brand` do SiteSpec), nunca em um componente.
+8. **Não sobrescreva classes da base via `className`.** Crie uma prop ou variante (`Card variant`, `Icon size`, `Section spacing`) ou use um wrapper.
+9. **Nada de texto fixo nas seções.** Todo texto vem de `content`.
+10. **Acessibilidade:**
+    - um único `h1` por página (hero); `h2` via `SectionHeading`; `h3` nos itens;
+    - `alt` em toda imagem;
+    - campos com label;
+    - foco visível;
+    - contraste AA;
+    - HTML semântico.
+11. **Responsividade:** mobile first. Confira em 390, 768 e 1440 px, sem rolagem horizontal.
+12. **Server Components por padrão.** `"use client"` só com interatividade real (hoje, apenas o `MobileMenu`).
+13. **Não instale dependências sem necessidade real.** A validação usa `lib/schema.ts` e os testes usam `node:test`.
+14. **Sintaxe compatível com o Node:** o `tsconfig` usa `erasableSyntaxOnly` e `verbatimModuleSyntax`. Não use `enum`, `namespace` nem parameter properties; importe tipos com `import type`.
+15. **Conteúdo de exemplo é fictício.** Nunca imite empresas ou pessoas reais. Sites de advocacia seguem as `guidelines` do template `law-firm` (Provimento 205/2021 da OAB).
+16. **Fora do escopo atual:** agentes autônomos, banco de dados, autenticação, CMS, dashboard, memória, CRM e integrações externas.
 
 ## Antes de concluir qualquer tarefa
 
 ```bash
-npm run check   # lint + typecheck + build: precisa terminar sem erros nem warnings
+npm run check   # lint + typecheck + testes + build + testes do HTML gerado
 ```
 
-O typecheck valida blueprints, templates e conteúdo, e o build renderiza a home e todos os sites em `/sites/*`. Para mudanças visuais, confira as páginas afetadas no navegador, no celular e no desktop.
+Tudo precisa passar sem erros nem warnings. Um SiteSpec de exemplo inválido quebra o build de propósito.
 
 ## Receitas rápidas
 
-- **Nova seção:** schema em `content/schemas/sections.ts` → componente em `components/sections/<tipo>/` recebendo `SectionProps<Conteudo>` → entrada no `registry.ts`.
-- **Nova variante:** componente com o mesmo schema → adicionar em `variants` do tipo no `registry.ts`.
-- **Novo template:** `templates/<id>/index.ts` com `defineTemplate` → id em `SiteType` (se for novo tipo) → registro em `templates/index.ts`.
-- **Novo site:** `blueprints/<id>.ts` com `defineBlueprint` → `content/examples/<id>.ts` tipado com `BlueprintContent<typeof blueprint>` → `composeSite` em `content/examples/index.ts`.
-- **Novo token:** declare em `design-system/tokens.css`. Se for cor, crie o par `--light-*`/`--dark-*` e o mapeamento nos três blocos de esquema, e adicione o nome em `ColorToken` (`design-system/theme.ts`).
+- **Novo site:**
+  1. Crie `examples/site-specs/<id>.json`.
+  2. Registre-o em `exampleSpecs` (`examples/index.ts`). Ele fica disponível em `/sites/<id>`.
+  3. Adicione o id a `exampleIds` em `tests/support.ts` para cobri-lo nos testes.
+- **Nova seção:**
+  1. Schema em `content/schemas/sections.ts` (e em `sectionContentSchemas`).
+  2. Entrada em `catalog.ts`.
+  3. Componente em `components/sections/<tipo>/`.
+  4. Registro em `registry.ts`. Os tipos obrigam a manter os quatro em sincronia.
+- **Nova variante:** nome em `variants` no `catalog.ts` + componente com o mesmo schema + entrada no `registry.ts`.
+- **Novo template:**
+  1. Crie `templates/<id>/index.ts` com `defineTemplate`.
+  2. Adicione o id em `siteTypes` (`templates/types.ts`), se for um novo tipo de site.
+  3. Registre-o em `templates/index.ts`.
+- **Novo ícone:** nome em `components/ui/icon-names.ts` + desenho em `icon.tsx`.
+- **Novo token:** `design-system/tokens.css`. Se for cor: par `--light-*`/`--dark-*`, mapeamento nos três blocos de esquema e o nome em `colorTokens` (`design-system/theme.ts`).
+- **Mudança incompatível no formato do SiteSpec:** incremente `SITE_SPEC_VERSION` e atualize a conversão em `blueprints/from-site-spec.ts`.
 
 ## Next.js 16 neste projeto
 
 - `params` é uma Promise; tipe páginas com o helper global `PageProps<"/rota">`.
 - `next/image`: use `preload`, não `priority` (obsoleto).
-- Em caso de dúvida sobre uma API, leia `node_modules/next/dist/docs/` antes de escrever o código.
+- JSON é importado com `with { type: "json" }` (funciona no Next e no Node).
+- Em caso de dúvida sobre uma API, leia `node_modules/next/dist/docs/`.

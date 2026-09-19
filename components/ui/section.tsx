@@ -1,13 +1,9 @@
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/cn";
 import { Container } from "@/components/ui/container";
+import type { SectionSurface } from "@/design-system/theme";
 
-/**
- * Background treatment of a section. `dark` switches the whole section to the
- * dark palette (e.g. a dark hero), whatever the scheme of the page.
- */
-export type SectionSurface = "default" | "muted" | "dark";
-
+/** `dark` switches the whole section to the dark palette, whatever the page scheme. */
 export const surfaceStyles: Record<SectionSurface, string> = {
   default: "",
   muted: "bg-muted/60",

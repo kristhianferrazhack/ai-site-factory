@@ -1,36 +1,68 @@
 import type { CSSProperties } from "react";
+import {
+  cssLength,
+  custom,
+  hexColor,
+  object,
+  oneOf,
+  optional,
+  partialRecord,
+  type Infer,
+} from "@/lib/schema";
 
-/**
+/*
  * A Theme overrides Design System tokens (design-system/tokens.css) for one
- * site or template. Anything left out keeps the default token value.
+ * site or template. Anything left out keeps the default token value. The
+ * schema below is both the runtime validation and the source of the types.
  */
-export type ColorScheme = "system" | "light" | "dark";
 
-export type ColorToken =
-  | "background"
-  | "foreground"
-  | "surface"
-  | "muted"
-  | "muted-foreground"
-  | "border"
-  | "input"
-  | "primary"
-  | "primary-foreground"
-  | "accent"
-  | "success"
-  | "ring";
+export const colorSchemes = ["system", "light", "dark"] as const;
+export type ColorScheme = (typeof colorSchemes)[number];
 
-export type RadiusToken = "control" | "field" | "card" | "panel";
+export const colorTokens = [
+  "background",
+  "foreground",
+  "surface",
+  "muted",
+  "muted-foreground",
+  "border",
+  "input",
+  "primary",
+  "primary-foreground",
+  "accent",
+  "success",
+  "ring",
+] as const;
+export type ColorToken = (typeof colorTokens)[number];
 
-/** One color for both schemes, or a pair for light and dark. */
-export type ThemeColor = string | { light: string; dark: string };
+export const radiusTokens = ["control", "field", "card", "panel"] as const;
+export type RadiusToken = (typeof radiusTokens)[number];
 
-export type Theme = {
-  scheme?: ColorScheme;
-  colors?: Partial<Record<ColorToken, ThemeColor>>;
-  radius?: Partial<Record<RadiusToken, string>>;
-  headingFont?: "sans" | "serif";
-};
+export const headingFonts = ["sans", "serif"] as const;
+
+/** Background treatment of a section. "dark" switches the section to the dark palette. */
+export const sectionSurfaces = ["default", "muted", "dark"] as const;
+export type SectionSurface = (typeof sectionSurfaces)[number];
+
+const colorPairSchema = object({ light: hexColor(), dark: hexColor() });
+
+/** One hex color for both schemes, or a pair for light and dark. */
+const themeColorSchema = custom<string | { light: string; dark: string }>(
+  'a hex color, or { "light": hex color, "dark": hex color }',
+  (value, ctx) =>
+    typeof value === "string" ? hexColor().check(value, ctx) : colorPairSchema.check(value, ctx),
+);
+export type ThemeColor = Infer<typeof themeColorSchema>;
+
+// Only hex colors and simple lengths are accepted: theme values become CSS
+// variables, so free-form strings could inject arbitrary CSS.
+export const themeSchema = object({
+  scheme: optional(oneOf(colorSchemes, { subject: "color scheme" })),
+  colors: optional(partialRecord(colorTokens, themeColorSchema)),
+  radius: optional(partialRecord(radiusTokens, cssLength())),
+  headingFont: optional(oneOf(headingFonts, { subject: "heading font" })),
+});
+export type Theme = Infer<typeof themeSchema>;
 
 /** Classes defined in tokens.css that map the color tokens to a palette. */
 export const schemeClassNames: Record<ColorScheme, string> = {

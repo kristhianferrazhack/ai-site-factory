@@ -1,4 +1,4 @@
-import type { SectionSurface } from "@/components/ui/section";
+import type { SectionSurface } from "@/design-system/theme";
 
 /** Props every section component receives from the Page Composer. */
 export type SectionProps<Content> = {

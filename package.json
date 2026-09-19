@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
-    "check": "npm run lint && npm run typecheck && npm run build"
+    "test": "node --import ./tests/register.mjs --test \"tests/unit/*.test.ts\"",
+    "test:rendered": "node --import ./tests/register.mjs --test \"tests/rendered/*.test.ts\"",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build && npm run test:rendered"
   },
   "dependencies": {
     "next": "16.3.5",

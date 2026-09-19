@@ -1,11 +1,13 @@
 import type { ReactNode, SVGProps } from "react";
 import { cn } from "@/lib/cn";
+import type { IconName } from "@/components/ui/icon-names";
 
 /**
  * Small inline icon set (24×24, stroke-based), so content can reference icons
- * by name without an icon library. To add one, add an entry below.
+ * by name without an icon library. To add one, add its name to icon-names.ts
+ * and its drawing below (the types require both).
  */
-const icons = {
+const icons: Record<IconName, ReactNode> = {
   "arrow-right": (
     <>
       <path d="M5 12h14" />
@@ -177,9 +179,7 @@ const icons = {
     </>
   ),
   zap: <path d="M13 2 4 14h7l-1 8 9-12h-7z" />,
-} satisfies Record<string, ReactNode>;
-
-export type IconName = keyof typeof icons;
+};
 
 const sizeStyles = {
   sm: "size-4",
