@@ -1,0 +1,153 @@
+/*
+ * AI Site Factory: Design System tokens.
+ *
+ * Every visual decision lives here as a CSS variable. Tailwind turns each
+ * token into utilities (--color-surface → bg-surface, --radius-card →
+ * rounded-card, --spacing-section → py-section...). Components must use
+ * these semantic utilities, never raw palette colors.
+ *
+ * Colors have two layers:
+ *   1. Palette: the light and dark value of each color (--light-*, --dark-*).
+ *      Themes (design-system/theme.ts) override these variables.
+ *   2. Semantic tokens (--color-*): point to the light or dark palette,
+ *      depending on the color scheme of the element (section 3 below).
+ *
+ * Color schemes are classes: `scheme-dark` switches an element and its whole
+ * subtree to the dark palette (e.g. a dark hero), `scheme-light` forces the
+ * light one and `scheme-system` follows the visitor's OS preference.
+ */
+
+/* 1. Palette */
+@layer base {
+  :root {
+    --light-background: #fafafa;
+    --dark-background: #09090b;
+    --light-foreground: #09090b;
+    --dark-foreground: #fafafa;
+    --light-surface: #ffffff; /* cards, panels */
+    --dark-surface: #111113;
+    --light-muted: #f4f4f5; /* subtle backgrounds */
+    --dark-muted: #18181b;
+    --light-muted-foreground: #5f5f68; /* secondary text */
+    --dark-muted-foreground: #a1a1aa;
+    --light-border: #e4e4e7;
+    --dark-border: #27272a;
+    --light-input: #8a8a93; /* form field borders (3:1 contrast) */
+    --dark-input: #6b6b73;
+    --light-primary: #09090b; /* primary buttons */
+    --dark-primary: #fafafa;
+    --light-primary-foreground: #fafafa;
+    --dark-primary-foreground: #09090b;
+    --light-accent: #4f46e5; /* highlights, icons, eyebrows */
+    --dark-accent: #818cf8;
+    --light-success: #16a34a;
+    --dark-success: #4ade80;
+    --light-ring: #4f46e5; /* focus outline */
+    --dark-ring: #818cf8;
+  }
+}
+
+/* 2. Semantic tokens (light by default) and the other design tokens */
+@theme static {
+  /* Colors */
+  --color-background: var(--light-background);
+  --color-foreground: var(--light-foreground);
+  --color-surface: var(--light-surface);
+  --color-muted: var(--light-muted);
+  --color-muted-foreground: var(--light-muted-foreground);
+  --color-border: var(--light-border);
+  --color-input: var(--light-input);
+  --color-primary: var(--light-primary);
+  --color-primary-foreground: var(--light-primary-foreground);
+  --color-accent: var(--light-accent);
+  --color-success: var(--light-success);
+  --color-ring: var(--light-ring);
+
+  /* Typography: families. The type scale lives in components/ui/heading.tsx and text.tsx. */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-playfair), ui-serif, Georgia, serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-heading: var(--font-sans);
+
+  /* Spacing: vertical rhythm between page sections */
+  --spacing-section: 5rem;
+  --spacing-section-lg: 7rem;
+
+  /* Radius */
+  --radius-control: 9999px; /* buttons, badges */
+  --radius-field: 0.75rem; /* inputs, icon tiles */
+  --radius-card: 1rem; /* cards, code windows */
+  --radius-panel: 1.5rem; /* large blocks such as CTA panels */
+
+  /* Shadows */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-elevated: 0 24px 60px -16px rgb(0 0 0 / 0.3);
+
+  /* Containers: max widths */
+  --container-content: 72rem; /* page content */
+  --container-text: 42rem; /* readable text blocks */
+  --container-media: 48rem; /* hero media, centered panels */
+
+  /* Breakpoints (Tailwind defaults, declared here to be easy to find and change) */
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 96rem;
+}
+
+/* 3. Color schemes: map the semantic tokens to the light or dark palette */
+@layer base {
+  :root,
+  .scheme-light,
+  .scheme-system {
+    color-scheme: light;
+    --color-background: var(--light-background);
+    --color-foreground: var(--light-foreground);
+    --color-surface: var(--light-surface);
+    --color-muted: var(--light-muted);
+    --color-muted-foreground: var(--light-muted-foreground);
+    --color-border: var(--light-border);
+    --color-input: var(--light-input);
+    --color-primary: var(--light-primary);
+    --color-primary-foreground: var(--light-primary-foreground);
+    --color-accent: var(--light-accent);
+    --color-success: var(--light-success);
+    --color-ring: var(--light-ring);
+  }
+
+  .scheme-dark {
+    color-scheme: dark;
+    --color-background: var(--dark-background);
+    --color-foreground: var(--dark-foreground);
+    --color-surface: var(--dark-surface);
+    --color-muted: var(--dark-muted);
+    --color-muted-foreground: var(--dark-muted-foreground);
+    --color-border: var(--dark-border);
+    --color-input: var(--dark-input);
+    --color-primary: var(--dark-primary);
+    --color-primary-foreground: var(--dark-primary-foreground);
+    --color-accent: var(--dark-accent);
+    --color-success: var(--dark-success);
+    --color-ring: var(--dark-ring);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root,
+    .scheme-system {
+      color-scheme: dark;
+      --color-background: var(--dark-background);
+      --color-foreground: var(--dark-foreground);
+      --color-surface: var(--dark-surface);
+      --color-muted: var(--dark-muted);
+      --color-muted-foreground: var(--dark-muted-foreground);
+      --color-border: var(--dark-border);
+      --color-input: var(--dark-input);
+      --color-primary: var(--dark-primary);
+      --color-primary-foreground: var(--dark-primary-foreground);
+      --color-accent: var(--dark-accent);
+      --color-success: var(--dark-success);
+      --color-ring: var(--dark-ring);
+    }
+  }
+}

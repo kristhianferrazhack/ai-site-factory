@@ -1,4 +1,6 @@
 import { cn } from "@/lib/cn";
+import { Heading } from "@/components/ui/heading";
+import { Text } from "@/components/ui/text";
 
 type SectionHeadingProps = {
   eyebrow?: string;
@@ -16,20 +18,14 @@ export function SectionHeading({
   className,
 }: SectionHeadingProps) {
   return (
-    <div className={cn("max-w-2xl", align === "center" && "mx-auto text-center", className)}>
+    <div className={cn("max-w-text", align === "center" && "mx-auto text-center", className)}>
       {eyebrow && (
-        <p className="font-mono text-xs font-medium uppercase tracking-widest text-accent">
+        <p className="mb-3 font-mono text-xs font-medium tracking-widest text-accent uppercase">
           {eyebrow}
         </p>
       )}
-      <h2 className="mt-3 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-        {title}
-      </h2>
-      {description && (
-        <p className="mt-4 text-base leading-7 text-pretty text-muted-foreground sm:text-lg">
-          {description}
-        </p>
-      )}
+      <Heading>{title}</Heading>
+      {description && <Text className="mt-4">{description}</Text>}
     </div>
   );
 }

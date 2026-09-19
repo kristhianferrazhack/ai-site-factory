@@ -1,115 +1,250 @@
-import type { TerminalLine } from "@/components/ui/terminal";
+import { lawFirmBlueprint } from "@/blueprints/law-firm";
+import type { Blueprint } from "@/blueprints/types";
+import { sectionRegistry } from "@/components/sections/registry";
+import type { PageDefinition } from "@/composer/types";
+import { exampleSites } from "@/content/examples";
+import type { Brand, FeatureItem } from "@/content/schemas";
 import { siteConfig } from "@/lib/site-config";
+import { templates } from "@/templates";
 
-/**
- * Landing page copy. Sections receive this content as props, so the same
- * components can be reused across sites by swapping only this file.
+/*
+ * Home page of the factory itself, composed with the same sections and
+ * Page Composer used for client sites. The catalog, the template gallery and
+ * the blueprint preview are generated from the real registries.
  */
-export const homeContent = {
-  hero: {
-    badge: "Fase 1 · Infraestrutura base",
-    title: "AI Site Factory",
-    description: siteConfig.description,
-    primaryAction: { label: "Como funciona", href: "#como-funciona" },
-    secondaryAction: { label: "Ver repositório", href: siteConfig.repoUrl },
-  },
 
-  terminal: [
-    { kind: "command", text: 'claude "crie a landing page da AI Site Factory"' },
-    { kind: "success", text: "Componentes e seções gerados" },
-    { kind: "command", text: "npm run build" },
-    { kind: "success", text: "Build de produção concluído" },
-    { kind: "command", text: "git push origin main" },
-    { kind: "success", text: "Código versionado no GitHub" },
-    { kind: "info", text: "Vercel publica o deploy automaticamente" },
-  ] satisfies TerminalLine[],
+const brand: Brand = {
+  name: siteConfig.name,
+  logo: { src: "/brand/logo.svg", alt: "", width: 28, height: 28 },
+};
 
-  howItWorks: {
-    id: "como-funciona",
-    eyebrow: "Como funciona",
-    title: "Do briefing ao site publicado",
-    description:
-      "Um processo simples e repetível, pensado para entregar sites de qualidade em escala.",
-    steps: [
-      {
-        title: "Descreva",
+const sectionDefinitions = Object.values(sectionRegistry);
+const variantCount = sectionDefinitions.reduce(
+  (total, section) => total + Object.keys(section.variants).length,
+  0,
+);
+
+const sectionCatalog: FeatureItem[] = sectionDefinitions.map((section) => {
+  const variants = Object.keys(section.variants).length;
+  return {
+    icon: section.icon,
+    title: section.name,
+    description: section.description,
+    badge: variants > 1 ? `${variants} variantes` : undefined,
+  };
+});
+
+const templateGallery: FeatureItem[] = templates.map((template) => {
+  const example = exampleSites.find((site) => site.blueprint.template === template.id);
+  return {
+    icon: template.icon,
+    title: template.name,
+    description: template.description,
+    badge: template.status === "ready" ? "Pronto" : "Em preparação",
+    href: example && `/sites/${example.blueprint.id}`,
+    linkLabel: "Ver site de exemplo",
+  };
+});
+
+/** Compact JSON view of a blueprint: strategy fields plus one line per section. */
+function blueprintPreview(blueprint: Blueprint) {
+  const { id, name, type, template, goal, audience, offer, cta, tone, sections } = blueprint;
+  const fields = { id, name, type, template, goal, audience, offer, cta: cta.label, tone };
+  const inline = (object: Record<string, unknown>) =>
+    Object.entries(object)
+      .filter(([, value]) => value !== undefined)
+      .map(([key, value]) => `"${key}": ${JSON.stringify(value)}`)
+      .join(", ");
+
+  return [
+    "{",
+    ...Object.entries(fields).map(([key, value]) => `  "${key}": ${JSON.stringify(value)},`),
+    '  "sections": [',
+    sections
+      .map(({ id, type, variant, surface }) => `    { ${inline({ id, type, variant, surface })} }`)
+      .join(",\n"),
+    "  ]",
+    "}",
+  ].join("\n");
+}
+
+export const homePage: PageDefinition = {
+  sections: [
+    {
+      type: "navbar",
+      content: {
+        brand,
+        links: [
+          { label: "Como funciona", href: "#como-funciona" },
+          { label: "Componentes", href: "#componentes" },
+          { label: "Templates", href: "#templates" },
+          { label: "Blueprint", href: "#blueprint" },
+        ],
+        action: { label: "GitHub", href: siteConfig.repoUrl },
+      },
+    },
+    {
+      type: "hero",
+      variant: "centered",
+      content: {
+        badge: "Fase 2 · Fábrica reutilizável",
+        title: siteConfig.name,
+        description: siteConfig.description,
+        primaryAction: { label: "Explorar templates", href: "#templates" },
+        secondaryAction: { label: "Ver repositório", href: siteConfig.repoUrl },
+        media: {
+          kind: "terminal",
+          title: "ai-site-factory",
+          lines: [
+            { kind: "command", text: 'claude "crie o site do escritório a partir do blueprint law-firm"' },
+            {
+              kind: "success",
+              text: `Blueprint validado: ${lawFirmBlueprint.sections.length} seções, template ${lawFirmBlueprint.template}`,
+            },
+            { kind: "command", text: "npm run check" },
+            { kind: "success", text: "Lint, typecheck e build aprovados" },
+            { kind: "command", text: "git push origin main" },
+            { kind: "info", text: "Vercel publica o site automaticamente" },
+          ],
+        },
+      },
+    },
+    {
+      id: "como-funciona",
+      type: "timeline",
+      variant: "steps",
+      content: {
+        eyebrow: "Como funciona",
+        title: "Quatro camadas, cada uma com um papel",
         description:
-          "Defina objetivo, público e conteúdo do site. A IA transforma o briefing em estrutura e seções.",
+          "A fábrica separa o que o site precisa comunicar de como ele é construído.",
+        items: [
+          {
+            title: "Blueprint",
+            description:
+              "Registra a estratégia: tipo de site, objetivo, público, oferta, tom e plano de seções.",
+          },
+          {
+            title: "Template",
+            description:
+              "Define a identidade visual e as variantes preferidas para cada tipo de negócio.",
+          },
+          {
+            title: "Conteúdo",
+            description: "Textos de cada seção, separados dos componentes e validados por schema.",
+          },
+          {
+            title: "Page Composer",
+            description: "Junta tudo e monta a página com os componentes da biblioteca.",
+          },
+        ],
       },
-      {
-        title: "Gere",
+    },
+    {
+      id: "componentes",
+      type: "features",
+      surface: "muted",
+      content: {
+        eyebrow: "Componentes",
+        title: "Uma biblioteca de seções prontas para combinar",
+        description: `${sectionDefinitions.length} tipos de seção e ${variantCount} variantes. Cada seção recebe apenas conteúdo: layout, acessibilidade e responsividade já vêm prontos, e o Design System garante a consistência visual.`,
+        items: sectionCatalog,
+      },
+    },
+    {
+      id: "templates",
+      type: "features",
+      content: {
+        eyebrow: "Templates",
+        title: "Pontos de partida por tipo de negócio",
         description:
-          "O site é montado com componentes e templates reutilizáveis, em código limpo e tipado.",
+          "Cada template define identidade visual, variantes preferidas, estrutura recomendada e regras de conteúdo. Os prontos têm um site de exemplo gerado a partir de um blueprint.",
+        items: templateGallery,
       },
-      {
-        title: "Publique",
+    },
+    {
+      id: "blueprint",
+      type: "code",
+      surface: "dark",
+      content: {
+        eyebrow: "Blueprint",
+        title: "A especificação do site, antes da construção",
         description:
-          "Cada alteração vira um commit no GitHub e um deploy na Vercel, com preview antes da produção.",
+          "O blueprint descreve tipo, objetivo, público, oferta, tom, identidade visual e a ordem das seções. É o formato que os agentes vão gerar a partir de um briefing.",
+        points: [
+          "Tipado em TypeScript: um erro no blueprint aparece no typecheck.",
+          "O conteúdo de cada seção é validado pelo schema do seu tipo.",
+          "Trocar de variante ou de template não exige reescrever o conteúdo.",
+        ],
+        action: { label: "Ver o site gerado", href: `/sites/${lawFirmBlueprint.id}` },
+        code: {
+          filename: `blueprints/${lawFirmBlueprint.id}.ts (resumo)`,
+          content: blueprintPreview(lawFirmBlueprint),
+        },
       },
-    ],
-  },
-
-  techStack: {
-    id: "tecnologia",
-    eyebrow: "Tecnologia",
-    title: "Uma stack moderna e sem dependências desnecessárias",
-    description:
-      "Ferramentas consolidadas, escolhidas para velocidade, qualidade e facilidade de evolução.",
-    items: [
-      {
-        name: "Next.js",
-        monogram: "N",
-        description: "Framework React com App Router, renderização no servidor e build otimizado.",
+    },
+    {
+      id: "fluxo",
+      type: "timeline",
+      variant: "flow",
+      content: {
+        eyebrow: "Fluxo de produção",
+        title: "Do briefing ao site no ar, sempre pelo mesmo caminho",
+        description: "Cada etapa tem um lugar definido no código e uma verificação automática.",
+        items: [
+          { title: "Briefing", description: "Objetivo, público e oferta" },
+          { title: "Blueprint", description: "Especificação tipada" },
+          { title: "Template", description: "Identidade e estrutura" },
+          { title: "Componentes", description: "Seções reutilizáveis" },
+          { title: "Design System", description: "Tokens consistentes" },
+          { title: "Conteúdo", description: "Textos por seção" },
+          { title: "Página", description: "Montada pelo composer" },
+          { title: "QA", description: "Lint, tipos e build" },
+          { title: "GitHub", description: "Fonte da verdade" },
+          { title: "Vercel", description: "Deploy e previews" },
+        ],
       },
-      {
-        name: "TypeScript",
-        monogram: "TS",
-        description: "Tipagem estática para um código previsível e seguro de evoluir.",
+    },
+    {
+      type: "cta",
+      variant: "simple",
+      content: {
+        title: "A fábrica está estruturada",
+        description:
+          "Design System, biblioteca de seções, templates, blueprints e Page Composer estão prontos. A próxima fase conecta agentes a essa base.",
+        primaryAction: { label: "Ver código no GitHub", href: siteConfig.repoUrl },
+        secondaryAction: { label: "Ver um site de exemplo", href: "/sites/landing-page" },
       },
-      {
-        name: "Tailwind CSS",
-        monogram: "TW",
-        description: "Estilização utilitária com design tokens consistentes em todos os sites.",
+    },
+    {
+      type: "footer",
+      content: {
+        brand,
+        description: siteConfig.description,
+        columns: [
+          {
+            title: "Fábrica",
+            links: [
+              { label: "Como funciona", href: "#como-funciona" },
+              { label: "Componentes", href: "#componentes" },
+              { label: "Templates", href: "#templates" },
+              { label: "Blueprint", href: "#blueprint" },
+            ],
+          },
+          {
+            title: "Exemplos",
+            links: exampleSites.map((site) => ({
+              label: site.blueprint.name,
+              href: `/sites/${site.blueprint.id}`,
+            })),
+          },
+          {
+            title: "Projeto",
+            links: [{ label: "Código no GitHub", href: siteConfig.repoUrl }],
+          },
+        ],
+        legal: "AI Site Factory · Fase 2: arquitetura reutilizável da fábrica.",
       },
-      {
-        name: "Claude Code",
-        monogram: "AI",
-        description: "Agente de IA que escreve, revisa e mantém o código dos projetos.",
-      },
-      {
-        name: "GitHub",
-        monogram: "GH",
-        description: "Fonte de verdade do código, com histórico completo de cada alteração.",
-      },
-      {
-        name: "Vercel",
-        monogram: "V",
-        description: "Deploy contínuo, previews por branch e entrega global via CDN.",
-      },
-    ],
-  },
-
-  productionFlow: {
-    id: "fluxo",
-    eyebrow: "Fluxo de produção",
-    title: "Do código ao site no ar, sem etapas manuais",
-    description:
-      "Cada site segue o mesmo caminho: versionado, validado e publicado automaticamente.",
-    stages: [
-      { name: "Claude Code", description: "Gera e altera o código a partir de instruções." },
-      { name: "Next.js", description: "Organiza o site em componentes e gera o build." },
-      { name: "Git", description: "Registra cada alteração em commits rastreáveis." },
-      { name: "GitHub", description: "Centraliza o código e as revisões." },
-      { name: "Vercel", description: "Cria previews e publica em produção." },
-      { name: "Site no ar", description: "Rápido, responsivo e pronto para o cliente." },
-    ],
-  },
-
-  cta: {
-    title: "A base da fábrica está pronta",
-    description:
-      "A Fase 1 cobre o fluxo completo do código ao site publicado. As próximas fases trazem templates, agentes especializados e um painel de controle.",
-    primaryAction: { label: "Ver código no GitHub", href: siteConfig.repoUrl },
-    secondaryAction: { label: "Rever o fluxo", href: "#fluxo" },
-  },
+    },
+  ],
 };
